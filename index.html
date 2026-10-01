@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CodeCheck - Verificador de Packing</title>
+  
+  <!-- Configuración PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  
+  <!-- Estilos -->
+  <link rel="stylesheet" href="./assets/css/styles.css">
+  
+  <!-- Librerías locales / Fallback offline -->
+  <script src="./assets/js/vendor/xlsx.full.min.js"></script>
+  <script src="./assets/js/vendor/lucide.min.js"></script>
+</head>
+<body>
+
+  <!-- Encabezado / App Bar -->
+  <header class="app-header">
+    <div class="header-brand">
+      <i data-lucide="scan-line" class="brand-icon"></i>
+      <h1>CodeCheck</h1>
+      <span class="badge" id="appVersion">v1.0</span>
+    </div>
+    <div class="header-status">
+      <span id="connectionStatus" class="status-indicator online" title="Estado de red"></span>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="app-container">
+
+    <!-- Sección 1: Carga y Selección de Datos -->
+    <section class="card import-section">
+      <h2><i data-lucide="file-spreadsheet"></i> Cargar Planilla Excel</h2>
+      <div class="file-dropzone" id="dropzone">
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="file-input-hidden">
+        <label for="excelFileInput" class="btn btn-primary btn-block">
+          <i data-lucide="upload-cloud"></i> Seleccionar o Arrastrar Excel
+        </label>
+        <p id="fileNameDisplay" class="file-name-hint">Ningún archivo cargado</p>
+      </div>
+
+      <!-- Selectores dinámicos de Hoja y Columnas -->
+      <div id="workbookConfig" class="sheet-config hidden">
+        <div class="form-group">
+          <label for="sheetSelect"><i data-lucide="layers"></i> Hoja de trabajo:</label>
+          <select id="sheetSelect" class="form-control"></select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="codeColumnSelect">Columna Código/Lote:</label>
+            <select id="codeColumnSelect" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label for="infoColumnSelect">Columna Información:</label>
+            <select id="infoColumnSelect" class="form-control"></select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección 2: Módulo de Verificación / Búsqueda -->
+    <section class="card verification-section">
+      <h2><i data-lucide="check-square"></i> Verificador de Código</h2>
+      
+      <div class="search-box">
+        <input type="text" id="codeInput" placeholder="Ingrese o escanee código de paquete/lote..." autocomplete="off">
+        <button id="btnSearch" class="btn btn-secondary">
+          <i data-lucide="search"></i>
+        </button>
+      </div>
+
+      <div class="scanner-actions">
+        <button id="btnToggleCamera" class="btn btn-accent btn-block">
+          <i data-lucide="camera"></i> Usar Cámara Scanner
+        </button>
+      </div>
+
+      <!-- Visor de la cámara (para escaneo directo) -->
+      <div id="interactiveScanner" class="viewport-scanner hidden">
+        <video id="cameraVideo" playsinline></video>
+        <button id="btnCloseCamera" class="btn btn-danger btn-sm close-cam-btn">Cerrar Cámara</button>
+      </div>
+
+      <!-- Resultado de la verificación -->
+      <div id="resultCard" class="result-card hidden">
+        <div id="resultStatusBadge" class="result-badge"></div>
+        <div id="resultDetails" class="result-details"></div>
+      </div>
+    </section>
+
+    <!-- Sección 3: Histórico / Registro de Auditorías -->
+    <section class="card log-section">
+      <div class="card-header-flex">
+        <h2><i data-lucide="history"></i> Registro de Verificaciones</h2>
+        <span id="logCount" class="badge-counter">0</span>
+      </div>
+
+      <div id="logList" class="log-list">
+        <p class="empty-state">No hay registros de verificaciones guardados.</p>
+      </div>
+
+      <div class="log-actions">
+        <button id="btnExportLog" class="btn btn-outline btn-sm">
+          <i data-lucide="download"></i> Exportar Auditoría (.xlsx)
+        </button>
+        <button id="btnClearLog" class="btn btn-danger-outline btn-sm">
+          <i data-lucide="trash-2"></i> Limpiar Registro
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Registro del Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('CodeCheck SW registrado:', reg.scope))
+          .catch(err => console.error('Error registrando SW:', err));
+      });
+    }
+
+    // Inicializar íconos Lucide cuando la página cargue
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+  </script>
+  
+  <script src="./assets/js/app.js"></script>
+</body>
+</html>
